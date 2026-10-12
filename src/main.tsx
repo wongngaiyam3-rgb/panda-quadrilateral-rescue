@@ -1,0 +1,13 @@
+import React from "react";
+import {createRoot} from "react-dom/client";
+import {Student} from "./components/student";
+import {Teacher} from "./components/teacher";
+import {BASE_PATH} from "./config";
+const path=location.pathname.replace(BASE_PATH,"").replace(/\/+$/,"")||"/";
+let page:React.ReactNode;
+if(path==="/teacher")page=<Teacher/>;
+else if(path==="/map")page=<Student view="map"/>;
+else if(path==="/journal")page=<Student view="journal"/>;
+else if(/^\/quest\/[1-7]$/.test(path))page=<Student view="quest" stage={Number(path.split("/").pop())}/>;
+else page=<Student/>;
+createRoot(document.getElementById("root")!).render(page);

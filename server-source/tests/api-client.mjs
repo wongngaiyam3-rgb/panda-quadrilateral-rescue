@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {readApiResponse} from '../.sites-runtime/api-client-test.mjs';
+assert.deepEqual(await readApiResponse(Response.json({rooms:[]})),{rooms:[]});
+await assert.rejects(readApiResponse(new Response('<!DOCTYPE html><html>Sign in</html>',{status:401,headers:{'Content-Type':'text/html'}})),/重新登入網站/);
+await assert.rejects(readApiResponse(new Response('<!DOCTYPE html><html>Service unavailable</html>',{status:502,headers:{'Content-Type':'text/html'}})),/暫時未能回傳資料/);
+await assert.rejects(readApiResponse(new Response('<!DOCTYPE html>',{status:200,headers:{'Content-Type':'text/html'}})),/暫時未能回傳資料/);
+await assert.rejects(readApiResponse(Response.json({error:'密碼不正確，請再試一次。'},{status:401})),/密碼不正確/);
+await assert.rejects(readApiResponse(new Response('invalid json')),/課堂資料讀取失敗/);
+await assert.rejects(readApiResponse(Response.json(null)),/格式不正確/);
+console.log('PASS: 正常JSON、平台HTML登入頁、HTML服務錯誤、非JSON資料、API密碼錯誤。');
