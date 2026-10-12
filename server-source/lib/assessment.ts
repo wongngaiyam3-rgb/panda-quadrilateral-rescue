@@ -18,12 +18,14 @@ export function assess(stage:number,a:Answer):{passed:boolean;feedback:string} {
   }return pass("調查完成！圖形的特性要用量度和檢查來確認。");
  }
  if(stage===3){
+  if(!["yes","no"].includes(a.predict))return fail("請先選擇你的預測；預測不同也可以繼續探索。");
   if(![2,3,5].every(w=>a.widths?.includes(w)))return fail("請先把寬度調到2、3、5個單位，分別按「記錄這次觀察」。");
   if(a.width!==3)return fail("再調整寬度，找出四邊等長的箱面，然後停在那個位置。");
   if(a.rectangle!=="yes"||a.reason!=="angles")return fail("檢查正方形的四個角和兩組對邊：它仍然符合長方形的特性嗎？");
   return pass("正方形是特別的長方形：它有四個直角，兩組對邊長度分別相等，而且四邊等長。");
  }
  if(stage===4){
+  if(!["yes","no"].includes(a.predict))return fail("請先選擇你的預測；預測不同也可以繼續探索。");
   if(![60,90,120].every(v=>a.angles?.includes(v)))return fail("請先觀察並記錄60°、90°、120°三個位置。");
   if(a.angle!==90||a.rhombus!=="yes"||a.reason!=="equal")return fail("四個角都是直角時，四邊仍然等長。調到90°再檢查一次。");
   return pass("正方形也是特別的菱形。菱形以四邊等長為特性，正方形仍符合這個條件。");

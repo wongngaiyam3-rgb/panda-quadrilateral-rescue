@@ -20,7 +20,7 @@ export async function POST(req:Request){return cors(req,await handlePOST(req));}
 async function handleGET(req:Request){try{
  const url=new URL(req.url);
  if(url.searchParams.get("rooms")==="1"){
-  const rows=await db().prepare("SELECT id,class_name,mode,name,opened,paused FROM classrooms ORDER BY created DESC,id DESC").all<any>();
+  const rows=await db().prepare("SELECT id,class_name,mode,name,opened,paused,created FROM classrooms ORDER BY created DESC,id DESC").all<any>();
   const seen=new Set<string>();const rooms=rows.results.filter(r=>{if(seen.has(r.class_name))return false;seen.add(r.class_name);return true;});
   return json({rooms});
  }
@@ -48,7 +48,7 @@ async function handlePOST(req:Request){try{
   const response=json({ok:true,sessionToken:token});response.headers.set("Set-Cookie",`panda_teacher=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=43200`);return response;
  }
  if(action==="logout"){const t=teacherToken(req);if(t)await db().prepare("DELETE FROM sessions WHERE token_hash=?").bind(await hash(t)).run();const r=json({ok:true});r.headers.set("Set-Cookie","panda_teacher=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0");return r;}
- if(["create","control","mark"].includes(action)){
+ if(["create","control","mark","recover"].includes(action)){
   if(!await teacher(req))return json({error:"老師登入已過期，請重新登入。"},401);
   if(action==="create"){
    if(!["4A","4B","4C"].includes(a.className)||!["individual","group"].includes(a.mode))return json({error:"請選擇班別和活動模式。"},400);
@@ -60,6 +60,13 @@ async function handlePOST(req:Request){try{
   if(action==="control"){
    if(a.opened!==undefined&&(!Number.isInteger(a.opened)||a.opened<1||a.opened>7))return json({error:"關卡必須為1至7。"},400);
    await db().prepare("UPDATE classrooms SET opened=?,paused=? WHERE id=?").bind(a.opened??room.opened,a.paused===undefined?room.paused:a.paused?1:0,room.id).run();return json({room:await roomById(room.id)});
+  }
+  if(action==="recover"){
+   const member=await db().prepare("SELECT id,label FROM learners WHERE id=? AND room_id=?").bind(String(a.learnerId),room.id).first<any>();
+   if(!member)return json({error:"找不到這位隊員。"},404);
+   const token=crypto.randomUUID()+crypto.randomUUID();
+   await db().prepare("UPDATE learners SET token_hash=?,last_seen=0 WHERE id=?").bind(await hash(token),member.id).run();
+   return json({token,label:member.label});
   }
   const l=await db().prepare("SELECT * FROM learners WHERE id=? AND room_id=?").bind(String(a.learnerId),room.id).first<any>();
   if(!l||!Number.isInteger(a.stage)||a.stage<1||a.stage>7)return json({error:"學生或關卡不正確。"},400);

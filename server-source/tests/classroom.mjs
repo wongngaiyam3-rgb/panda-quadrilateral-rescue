@@ -23,8 +23,8 @@ assert.equal((await get()).data.records[0].draft.rotation,'same');
 const answers=[
  {edges:{0:['CD'],1:['AB','CD'],2:['BC']},rotation:'same'},
  {tools:{0:['length','angle','parallel'],1:['length','angle','parallel'],2:['length','angle','parallel'],3:['length','angle','parallel']},table:{0:{0:'true',1:'true',2:'true',3:'true'},1:{0:'true',1:'false',2:'true',3:'true'},2:{0:'false',1:'true',2:'true',3:'true'},3:{0:'false',1:'false',2:'true',3:'true'}}},
- {width:3,widths:[2,3,5],rectangle:'yes',reason:'angles'},
- {angle:90,angles:[60,90,120],rhombus:'yes',reason:'equal'},
+ {predict:"no",width:3,widths:[2,3,5],rectangle:'yes',reason:'angles'},
+ {predict:"yes",angle:90,angles:[60,90,120],rhombus:'yes',reason:'equal'},
  {builds:{rectangle:{width:4,side:3,angle:90},rhombus:{width:3,side:3,angle:60},square:{width:3,side:3,angle:90}},shared:['opposite','parallel']},
  {zones:{A:1,B:0,C:2,D:3,E:1,F:0,G:4},allSquares:'yes',allRectangles:'no'},
  {selected:{0:['A','B','E','F'],1:['A','C','E'],2:['A','B','C','D','E','F']},reverse:'no',explain:'both'}
@@ -54,4 +54,11 @@ assert.equal(direct.status,200);assert.equal(direct.data.room.id,newest.id);
 assert.equal((await get()).data.learner.completed,7,"原有通行碼保留舊課堂進度");
 console.log("PASS: 無代碼入班、每班最新課堂、小組與個人範圍、既有進度保留。");
 
+const previousToken=token;
+const recovered=await post({action:"recover",roomId:room.id,learnerId:join.data.learner.id});assert.equal(recovered.status,200);
+assert.equal((await get("",previousToken)).status,401,"舊裝置憑證已停用");
+const resumed=await get("",recovered.data.token);assert.equal(resumed.status,200);assert.equal(resumed.data.learner.completed,7);assert.equal(resumed.data.records.length,7);
+assert.equal((await post({action:"recover",roomId:room.id,learnerId:join.data.learner.id},{auth:false})).status,401);
+assert.equal((await post({action:"recover",roomId:room2.id,learnerId:join.data.learner.id})).status,404,"不能跨課堂恢復");
+console.log("PASS: 老師恢復隊員憑證、保留七關答案與進度、撤銷舊裝置、未授權及跨課堂操作拒絕。");
 await post({action:"logout"});assert.equal((await get("?teacher=1")).status,401,"登出必須撤銷憑證");teacherSession="invalid";assert.equal((await get("?teacher=1")).status,401,"無效憑證不能進入");console.log("PASS: 無Cookie老師登入、授權操作、登出撤銷與無效憑證拒絕。");

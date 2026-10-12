@@ -8,6 +8,8 @@
 
 GitHub Pages提供學生及老師的靜態畫面，Sites伺服器與D1資料庫保存共用課堂、答案及登入狀態。GitHub Pages本身不執行伺服器程式。伺服器只允許GitHub Pages指定來源的跨來源請求。
 
+新版加入清楚的入班狀態、離頁即時保存及本機答案備份、縮放正確的拖動、點對點尺、直角及平行比較工具、老師預覽和恢復裝置連結。預覽不寫入課堂；恢復連結會撤銷原裝置憑證並保留所有進度。
+
 老師密碼由伺服器環境變數設定，不包含在儲存庫。老师登入憑證有效12小時，使用請求標頭驗證，可在跨站Cookie受限制時正常操作。學生紀錄也需要各自的通行憑證。
 
 ## 檔案
@@ -19,7 +21,7 @@ GitHub Pages提供學生及老師的靜態畫面，Sites伺服器與D1資料庫�
 
 ## 建置與使用
 
-執行`npm install`及`npm run build`。Pages設定選GitHub Actions，推送main會自動重新發布。網站基底路徑為`/panda-quadrilateral-rescue/`。
+執行`npm ci`、`npm test`及`npm run build`。Pages設定選GitHub Actions，推送main會自動重新發布。網站基底路徑為`/panda-quadrilateral-rescue/`。
 
 首次上課先由老師登入基地，建立所需班別的課堂，學生便可直接選班別加入。學生完成關卡後，老師可在基地開啟下一關。
 

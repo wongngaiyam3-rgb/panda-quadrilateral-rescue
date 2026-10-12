@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts/build.mjs"
+    "build": "node scripts/build.mjs",
+    "test": "node scripts/test.mjs"
   },
   "dependencies": {
     "react": "19.2.6",
@@ -11,6 +12,7 @@
     "lucide-react": "1.31.0"
   },
   "devDependencies": {
-    "esbuild": "0.27.3"
+    "esbuild": "0.27.3",
+    "react-test-renderer": "19.2.6"
   }
 }

@@ -1,3 +1,6 @@
 node_modules/
 .env*
 *.tsbuildinfo
+
+.tmp/
+server-source/.sites-runtime/
