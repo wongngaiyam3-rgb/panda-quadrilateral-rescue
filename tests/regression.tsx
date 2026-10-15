@@ -21,8 +21,8 @@ async function click(b:any){assert(b,'button exists');await act(async()=>{await 
 async function form(r:any){await act(async()=>{await r.root.findAllByType('form')[0].props.onSubmit({preventDefault(){}});await settle();await settle()});await act(async()=>{await settle();await settle()});}
 let teacher=await mount(Teacher);await act(async()=>teacher.root.findByType('input').props.onChange({target:{value:'test-password'}}));await form(teacher);await form(teacher);
 await expectText(teacher,"目前開放至第1關");
-let student=await mount(Student);assert(text(student.root).includes('繼續任務'));assert(!text(student.root).includes('等待老師開課'));assert.equal(requests.length,0,"學生首頁不應呼叫課堂伺服器");
-await act(async()=>student.unmount());student=await mount(Student,{view:'quest',stage:1});await expectText(student,'探索工作台');assert(!text(student.root).includes('等待老師開啟下一關'));assert.equal(requests.length,0,"學生任務應完全離線");
+const beforeStudent=requests.length;let student=await mount(Student);assert(text(student.root).includes('繼續任務'));assert(!text(student.root).includes('等待老師開課'));assert.equal(requests.length,beforeStudent,"學生首頁不應呼叫課堂伺服器");
+await act(async()=>student.unmount());student=await mount(Student,{view:'quest',stage:1});await expectText(student,'探索工作台');assert(!text(student.root).includes('等待老師開啟下一關'));assert.equal(requests.length,beforeStudent,"學生任務應完全離線");
 console.log('PASS student can enter and explore without teacher-created classroom or server requests.');
 await act(async()=>student.unmount());
 let g:any,moved=3,move:any;await act(async()=>{g=create(<Geometry width={3} angle={90} onWidth={v=>moved=v}/>,{createNodeMock:e=>e.type==='svg'?{getBoundingClientRect:()=>({left:0,top:0,width:700,height:360})}:null})});
