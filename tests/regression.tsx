@@ -21,11 +21,9 @@ async function click(b:any){assert(b,'button exists');await act(async()=>{await 
 async function form(r:any){await act(async()=>{await r.root.findAllByType('form')[0].props.onSubmit({preventDefault(){}});await settle();await settle()});await act(async()=>{await settle();await settle()});}
 let teacher=await mount(Teacher);await act(async()=>teacher.root.findByType('input').props.onChange({target:{value:'test-password'}}));await form(teacher);await form(teacher);
 await expectText(teacher,"目前開放至第1關");
-let student=await mount(Student);const classSelect=student.root.findAllByType("select")[0];assert.deepEqual(classSelect.findAllByType("option").map(o=>o.props.value),["4A","4B","4C"],"班別狀態標籤不能改變提交值");await form(student);const oldToken=memory.get('panda-rescue-pass');await act(async()=>student.unmount());student=await mount(Student,{view:'quest',stage:1});await expectText(student,'保持不變');
-await click(button(student,'保持不變'));assert(text(student.root).includes('尚未保存'));
-const parent=student.root.findByType('main');await act(async()=>{await parent.props.onClickCapture({target:{closest:()=>({target:'',getAttribute:()=>'/panda-quadrilateral-rescue/map/'})},preventDefault(){}});await settle()});
-const saved=await (await GET(new Request('https://test.local/api/classroom',{headers:{'x-learner-token':oldToken}}))).json();assert.equal(saved.records[0].draft.rotation,'same');assert.equal(window.location.href,'/panda-quadrilateral-rescue/map/');
-console.log('PASS navigation saves immediately; local answer preserved and saved status accurate.');
+let student=await mount(Student);assert(text(student.root).includes('繼續任務'));assert(!text(student.root).includes('等待老師開課'));assert.equal(requests.length,0,"學生首頁不應呼叫課堂伺服器");
+await act(async()=>student.unmount());student=await mount(Student,{view:'quest',stage:1});await expectText(student,'探索工作台');assert(!text(student.root).includes('等待老師開啟下一關'));assert.equal(requests.length,0,"學生任務應完全離線");
+console.log('PASS student can enter and explore without teacher-created classroom or server requests.');
 await act(async()=>student.unmount());
 let g:any,moved=3,move:any;await act(async()=>{g=create(<Geometry width={3} angle={90} onWidth={v=>moved=v}/>,{createNodeMock:e=>e.type==='svg'?{getBoundingClientRect:()=>({left:0,top:0,width:700,height:360})}:null})});
 const circle=g.root.findByType('circle');circle.props.onPointerDown({clientX:417.5,clientY:112.5,pointerId:1,currentTarget:{setPointerCapture(){},addEventListener(n:string,f:any){if(n==='pointermove')move=f},removeEventListener(){}}});move({clientX:417.5,clientY:112.5});assert.equal(moved,3);move({clientX:440,clientY:112.5});assert.equal(moved,4);
@@ -41,8 +39,6 @@ await click(button(preview,'比較對邊平行'));for(const i of [0,2,1,3])await
 assert(text(preview.root).includes('3/3工具'));assert.equal(requests.length,before);await act(async()=>preview.unmount());
 console.log('PASS interactive tools: all 4 edges, 4 corners, 2 opposite pairs recorded; teacher preview makes no API requests.');
 await click(button(teacher,'主動開啟第2關'));assert(text(teacher.root).includes('目前開放至第2關'));
-await click(button(teacher,'建立新課堂'));await form(teacher);student=await mount(Student,{view:'map'});await expectText(student,'已建立新課堂');assert(text(student.root).includes('舊紀錄會保留'));
-await click(button(student,'加入最新課堂'));assert(text(student.root).includes('加入救援隊'));assert.equal(memory.get('panda-rescue-pass'),undefined);assert(JSON.parse(memory.get('panda-rescue-pass:history')).length===1);
-console.log('PASS new classroom notice and switching preserve old local pass.');
+console.log('PASS teacher console remains available independently of student offline flow.');
 await act(async()=>{student.unmount();teacher.unmount()});
 console.log('Frontend regression checks complete.');
